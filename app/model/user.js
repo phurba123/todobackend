@@ -41,7 +41,7 @@ let userSchema = new schema(
                     default: ''
                 }
 
-            }],
+            }]
         },
 
         //storing the ids of friends sending friend request
@@ -50,14 +50,9 @@ let userSchema = new schema(
                 friendId: {
                     type: String,
                     default: ''
-                },
+                }
 
-                friendName: {
-                    type: String,
-                    default: ''
-                },
-
-            }],
+            }]
         },
 
         //storing the ids of friends to whom friend request has been sent
@@ -66,8 +61,8 @@ let userSchema = new schema(
                 friendId: {
                     type: String,
                     default: ''
-                },
-            }],
+                }
+            }]
         },
 
         createdOn: {
@@ -75,12 +70,12 @@ let userSchema = new schema(
             default: ""
         },
 
-        modifiedOn:{
-            type:Date,
-            default:""
+        modifiedOn: {
+            type: Date,
+            default: ""
         }
 
     }
 )
 
-mongoose.model('userModel',userSchema);
+mongoose.model('userModel', userSchema);

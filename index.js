@@ -2,11 +2,13 @@ const express = require('express')
 const app = express();
 const fs = require('fs');
 const appconfig = require('./appConfig');
-const http = require('http')
+const http = require('http');
+const logger = require('./app/libs/loggerLib')
 
-const routesPath = './app/routes';
+
 
 // bootstrap routes
+const routesPath = './app/routes';
 fs.readdirSync(routesPath).forEach((file) => {
     if (~file.indexOf('.js')) {
         let route = require(routesPath + '/' + file);
@@ -26,7 +28,7 @@ server.on('error', onError);
 
 function onError(error) {
     if (error.syscall !== 'listen') {
-        //logger.error(error.code + ' not equal listen', 'serverOnErrorHandler', 10)
+        logger.error(error.code + ' not equal listen', 'serverOnErrorHandler', 10)
         throw error;
     }
 
@@ -34,15 +36,15 @@ function onError(error) {
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
-            //logger.error(error.code + ':elavated privileges required', 'serverOnErrorHandler', 10);
+            logger.error(error.code + ':elavated privileges required', 'serverOnErrorHandler', 10);
             process.exit(1);
             break;
         case 'EADDRINUSE':
-            //logger.error(error.code + ':port is already in use.', 'serverOnErrorHandler', 10);
+            logger.error(error.code + ':port is already in use.', 'serverOnErrorHandler', 10);
             process.exit(1);
             break;
         default:
-            //logger.error(error.code + ':some unknown error occured', 'serverOnErrorHandler', 10);
+            logger.error(error.code + ':some unknown error occured', 'serverOnErrorHandler', 10);
             throw error;
     }
 }
@@ -60,7 +62,7 @@ function onListening() {
         : 'port ' + addr.port;
     ('Listening on ' + bind);
 
-    console.log('listening to server on 3000')
+    logger.info('server listening on port' + addr.port, 'serverOnListeningHandler', 10);
 }
 
 
