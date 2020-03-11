@@ -4,8 +4,10 @@ const userController = require('../controller/userController')
 let setRouter = (app) => {
     let baseUrl = appConfig.apiVersion + '/user';
 
-    app.post(`${baseUrl}/signup`, userController.signUpUser)
-    app.get(`${baseUrl}/hello`,(req,res)=>res.send('hello world'))
+    app.post(`${baseUrl}/signup`, userController.signUpUser);
+
+    app.post(`${baseUrl}/signin`, userController.signInUser)
+
 }
 
 module.exports = {

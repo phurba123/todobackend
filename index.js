@@ -35,6 +35,7 @@ fs.readdirSync(routesPath).forEach((file) => {
 //global notfound handler after bootstrap route
 app.use(appErrorHandler.globalNotFoundHandler)
 
+//creating server
 let server = http.createServer(app);
 server.listen(appconfig.port)
 server.on('listening', onListening);
