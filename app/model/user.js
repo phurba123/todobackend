@@ -68,11 +68,6 @@ let userSchema = new schema(
         createdOn: {
             type: Date,
             default: ""
-        },
-
-        modifiedOn: {
-            type: Date,
-            default: ""
         }
 
     }

@@ -3,19 +3,37 @@ const app = express();
 const fs = require('fs');
 const appconfig = require('./appConfig');
 const http = require('http');
-const logger = require('./app/libs/loggerLib')
+const logger = require('./app/libs/loggerLib');
+const mongoose = require('mongoose')
+const bodyParser = require('body-parser');
+const appErrorHandler = require('./app/middleware/appErrorHandler')
 
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+// parse application/json
+app.use(bodyParser.json());
+app.use(appErrorHandler.globalErrorHandler)
 
+//Bootstrap models
+let modelsPath = ('./app/model');
+fs.readdirSync(modelsPath).forEach(function (file) {
+    if (~file.indexOf('.js')) require(modelsPath + '/' + file)
+});
+// end Bootstrap models
 
 // bootstrap routes
 const routesPath = './app/routes';
 fs.readdirSync(routesPath).forEach((file) => {
     if (~file.indexOf('.js')) {
         let route = require(routesPath + '/' + file);
+        console.log('route ',route)
         route.setRouter(app);
     }
 })
 //end of bootstrap routes
+
+//global notfound handler after bootstrap route
+app.use(appErrorHandler.globalNotFoundHandler)
 
 let server = http.createServer(app);
 server.listen(appconfig.port)
@@ -63,6 +81,22 @@ function onListening() {
     ('Listening on ' + bind);
 
     logger.info('server listening on port' + addr.port, 'serverOnListeningHandler', 10);
+    mongoose.connect(appconfig.db.uri, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
 }
+
+/**
+ * database connection settings
+ */
+mongoose.connection.on('error', function (err) {
+    logger.error(err, 'mongoose connection on error handler', 10)
+}); // end mongoose connection error
+
+mongoose.connection.on('open', function (err) {
+    if (err) {
+        logger.error(err, 'mongoose connection open handler', 10)
+    } else {
+        logger.info("database connection open", 'database connection open handler', 10)
+    }
+}); // enr mongoose connection open handler
 
 

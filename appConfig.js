@@ -5,7 +5,7 @@ let appConfig={
     db:{
         uri:'mongodb://127.0.0.1:27017/ToDoListDB'
     },
-    apiVersion:'api/v1'
+    apiVersion:'/api/v1'
 }
 
 module.exports = appConfig;
