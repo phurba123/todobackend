@@ -6,13 +6,15 @@ const http = require('http');
 const logger = require('./app/libs/loggerLib');
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser');
-const appErrorHandler = require('./app/middleware/appErrorHandler')
+const appErrorHandler = require('./app/middleware/appErrorHandler');
+const requestIpLogger = require('./app/middleware/requestIpLogger')
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json());
-app.use(appErrorHandler.globalErrorHandler)
+app.use(appErrorHandler.globalErrorHandler);
+app.use(requestIpLogger.logIp)
 
 //Bootstrap models
 let modelsPath = ('./app/model');
