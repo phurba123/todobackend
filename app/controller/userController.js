@@ -274,7 +274,14 @@ let signInUser = (req, res) => {
 
 }//end of login
 
+//function to resolve forgot password
+let forgotPassword = (req,res)=>
+{
+    //logic of function
+}//end of forgot password function
+
 module.exports = {
     signUpUser,
-    signInUser
+    signInUser,
+    forgotPassword
 }
