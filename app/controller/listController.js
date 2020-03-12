@@ -30,7 +30,7 @@ let createList = (req, res) => {
             let newList = new listModel({
                 listId: shortId.generate(),
                 listTitle: req.body.listTitle,
-                listCreatorId: req.body.userId,
+                listCreatorId: req.user.userId,
                 listCreatedOn: timeLib.now()
             });
 
