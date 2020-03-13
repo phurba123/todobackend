@@ -145,10 +145,73 @@ let getAllListOfUser = (req, res) => {
         })
 }
 
+let deleteList = (req,res)=>
+{
+    //validate list id 
+    let validateListId=()=>
+    {
+        return new Promise((resolve,reject)=>
+        {
+            if(req.params.listId)
+            {
+                //if listId is present than resolve req
+                resolve(req)
+            }
+            else
+            {
+                logger.error('listId not provided','ListController:deleteList',10);
+                apiResponse=response.generate(true,'listId not provided',400,null);
+                reject(apiResponse)
+            }
+        })
+    }//end of validateListId
+
+    //delete list with given listId
+    let deleteListAfterValidation=()=>
+    {
+        return new Promise((resolve,reject)=>
+        {
+            listModel.findOneAndRemove({'listId':req.params.listId},(err,result)=>
+            {
+                if(err)
+                {
+                    logger.error('Error while deleting list','Listcontroller:deleteList',10);
+                    apiResponse=response.generate(true,'error while deleting list',400,null);
+                    reject(apiResponse)
+                }
+                else if(checkLib.isEmpty(result))
+                {
+                    logger.error('No list found','ListController:deleteList',5);
+                    apiResponse=response.generate(true,'No list found',404,null);
+                    reject(apiResponse)
+                }
+                else
+                {
+                    logger.info('list deleted','listController:deleteList',5);
+                    apiResponse=response.generate(false,'list deleted',200,result);
+                    resolve(apiResponse)
+                }
+            })
+        })
+    }
+
+    validateListId(req,res)
+    .then(deleteListAfterValidation)
+    .then((resolve)=>
+    {
+        res.send(resolve)
+    })
+    .catch((err)=>
+    {
+        res.send(err)
+    })
+}
+
 
 
 module.exports = {
     createList,
     editListTitle,
-    getAllListOfUser
+    getAllListOfUser,
+    deleteList
 }
