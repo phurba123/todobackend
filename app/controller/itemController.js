@@ -136,7 +136,7 @@ let editItemTitle = (req, res) => {
             }
 
             //listId associated with itemId
-            listModel.update({'listId':req.body.listId ,'items.itemId': req.params.itemId }, options, (err, res) => {
+            listModel.update({ 'items.itemId': req.params.itemId }, options, (err, res) => {
                 if (err) {
                     logger.error('error while updating item Title', 'ListController:editItemAfterValidation', 10);
                     apiResponse = response.generate(true, 'Error while updating item Title', 500, null);
@@ -161,7 +161,80 @@ let editItemTitle = (req, res) => {
         })//end of promises
 }//end of item title
 
+//for deleting item in a list
+let deleteItemById = (req, res) => {
+    //validate itemId
+    let validateInputs = () => {
+
+        return new Promise((resolve, reject) => {
+            listModel.findOne({'listId':req.body.listId ,'items.itemId': req.params.itemId }, (err, result) => {
+                if (err) {
+                    logger.error('error while valildating inputs', 'itemController:deleteItemById', 10);
+                    apiResponse = response.generate(true, 'Error while validating inputs', 400, null);
+                    reject(apiResponse)
+                }
+                else if (checkLib.isEmpty(result)) {
+                    console.log('result :: ', result)
+                    apiResponse = response.generate(true, 'no item found for given listId and itemId', 404, null);
+                    reject(apiResponse)
+                }
+                else {
+                    //if list found than resolve req with listId
+                    resolve(req)
+                }
+            })
+        })
+    }//end of validate itemId  
+
+    //delete item with given itemId
+    let deleteItem = () => {
+        return new Promise((resolve, reject) => {
+
+            //To delete the item from list model we will use pull method of array
+
+            let options = {
+                $pull: {
+                    items: {
+                        itemId: req.params.itemId
+                    }
+                }
+            }
+
+            // options.listModifiedOn = time.now()
+            // options.listModifierId = req.user.userId
+
+                listModel.updateOne({ 'listId': req.body.listId }, options).exec((err, result) => {
+                    if (err) {
+                        console.log(err)
+                        logger.error('error while deleting item', 'ItemController:deleteItem', 10)
+                        apiResponse = response.generate(true, 'error while deleting item', 500, null)
+                        reject(apiResponse)
+                    } else if (checkLib.isEmpty(result)) {
+                        logger.info('No list Found', 'ItemController:deleteItem')
+                        apiResponse = response.generate(true, 'No list Found', 404, null)
+                        reject(apiResponse)
+                    } else {
+                        apiResponse = response.generate(false, 'item deleted', 200, result)
+                        resolve(apiResponse)
+                    }
+                });// end list model update
+        })
+    }
+
+    validateInputs(req, res)
+        .then(deleteItem)
+        .then((resolve) => {
+            console.log('resolve ',resolve)
+            res.send(resolve)
+        })
+        .catch((err) => {
+            res.send(err)
+        })
+
+}
+
 module.exports = {
     addItemToList,
-    editItemTitle
+    editItemTitle,
+    deleteItemById
 }

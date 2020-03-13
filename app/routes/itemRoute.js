@@ -12,8 +12,13 @@ let setRouter = (app) => {
 
     //edit item title by its id
     //param--itemId
-    //body-->itemTitle,listId
-    app.put(`${baseUrl}/:itemId/editItemTitle`,authMiddleware.isAuthorized,itemController.editItemTitle)
+    //body-->itemTitle
+    app.put(`${baseUrl}/:itemId/editItemTitle`,authMiddleware.isAuthorized,itemController.editItemTitle);
+
+    //delete item by itemId
+    //param--itemId
+    //body--listId
+    app.post(`${baseUrl}/:itemId/deleteItem`,authMiddleware.isAuthorized,itemController.deleteItemById)
 }
 
 module.exports={
