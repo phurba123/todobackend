@@ -145,50 +145,97 @@ let getAllListOfUser = (req, res) => {
         })
 }
 
-let deleteList = (req,res)=>
-{
+let deleteList = (req, res) => {
     //validate list id 
-    let validateListId=()=>
-    {
-        return new Promise((resolve,reject)=>
-        {
-            if(req.params.listId)
-            {
+    let validateListId = () => {
+        return new Promise((resolve, reject) => {
+            if (req.params.listId) {
                 //if listId is present than resolve req
                 resolve(req)
             }
-            else
-            {
-                logger.error('listId not provided','ListController:deleteList',10);
-                apiResponse=response.generate(true,'listId not provided',400,null);
+            else {
+                logger.error('listId not provided', 'ListController:deleteList', 10);
+                apiResponse = response.generate(true, 'listId not provided', 400, null);
                 reject(apiResponse)
             }
         })
     }//end of validateListId
 
     //delete list with given listId
-    let deleteListAfterValidation=()=>
+    let deleteListAfterValidation = () => {
+        return new Promise((resolve, reject) => {
+            listModel.findOneAndRemove({ 'listId': req.params.listId }, (err, result) => {
+                if (err) {
+                    logger.error('Error while deleting list', 'Listcontroller:deleteList', 10);
+                    apiResponse = response.generate(true, 'error while deleting list', 400, null);
+                    reject(apiResponse)
+                }
+                else if (checkLib.isEmpty(result)) {
+                    logger.error('No list found', 'ListController:deleteList', 5);
+                    apiResponse = response.generate(true, 'No list found', 404, null);
+                    reject(apiResponse)
+                }
+                else {
+                    logger.info('list deleted', 'listController:deleteList', 5);
+                    apiResponse = response.generate(false, 'list deleted', 200, result);
+                    resolve(apiResponse)
+                }
+            })
+        })
+    }
+
+    validateListId(req, res)
+        .then(deleteListAfterValidation)
+        .then((resolve) => {
+            res.send(resolve)
+        })
+        .catch((err) => {
+            res.send(err)
+        })
+}
+
+//get list by id
+let getListById = (req, res) => {
+    //validate list id 
+    let validateListId = () => {
+        return new Promise((resolve, reject) => {
+            if (req.params.listId) {
+                //if listId is present than resolve req
+                resolve(req)
+            }
+            else {
+                logger.error('listId not provided', 'ListController:deleteList', 10);
+                apiResponse = response.generate(true, 'listId not provided', 400, null);
+                reject(apiResponse)
+            }
+        })
+    }//end of validateListId
+    
+    //getting list with provided listId
+    let getList=()=>
     {
         return new Promise((resolve,reject)=>
         {
-            listModel.findOneAndRemove({'listId':req.params.listId},(err,result)=>
+            listModel.findOne({'listId':req.params.listId})
+            .select('-_id -__v')
+            .exec((err,result)=>
             {
                 if(err)
                 {
-                    logger.error('Error while deleting list','Listcontroller:deleteList',10);
-                    apiResponse=response.generate(true,'error while deleting list',400,null);
+                    logger.error('Error while getting list', 'Listcontroller:getListById', 10);
+                    apiResponse = response.generate(true, 'error while getting list', 400, null);
                     reject(apiResponse)
                 }
                 else if(checkLib.isEmpty(result))
                 {
-                    logger.error('No list found','ListController:deleteList',5);
-                    apiResponse=response.generate(true,'No list found',404,null);
+                    logger.error('No list found', 'ListController:getListById', 5);
+                    apiResponse = response.generate(true, 'No list found', 404, null);
                     reject(apiResponse)
                 }
                 else
                 {
-                    logger.info('list deleted','listController:deleteList',5);
-                    apiResponse=response.generate(false,'list deleted',200,result);
+                    logger.info('list found', 'listController:getListById', 5);
+                    apiResponse = response.generate(false, 'list found', 200, result);
                     resolve(apiResponse)
                 }
             })
@@ -196,7 +243,7 @@ let deleteList = (req,res)=>
     }
 
     validateListId(req,res)
-    .then(deleteListAfterValidation)
+    .then(getList)
     .then((resolve)=>
     {
         res.send(resolve)
@@ -207,11 +254,10 @@ let deleteList = (req,res)=>
     })
 }
 
-
-
 module.exports = {
     createList,
     editListTitle,
     getAllListOfUser,
-    deleteList
+    deleteList,
+    getListById
 }

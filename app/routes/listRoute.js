@@ -19,7 +19,10 @@ let setRouter = (app)=>
     app.get(`${baseUrl}/view/all`,authMiddleware.isAuthorized,listController.getAllListOfUser);
 
     //route for deleting list
-    app.post(`${baseUrl}/:listId/delete`,listController.deleteList);
+    app.post(`${baseUrl}/:listId/delete`,authMiddleware.isAuthorized, listController.deleteList);
+
+    //route to get single list by listId
+    app.get(`${baseUrl}/:listId/view`,authMiddleware.isAuthorized,listController.getListById);
 
     //route for adding item to a list
     //params-->listId
