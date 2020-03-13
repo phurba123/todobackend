@@ -1,7 +1,6 @@
 const appconfig = require('../../appConfig');
 const listController = require('../controller/listController');
 const authMiddleware = require('../middleware/authMiddleware');
-const itemController = require('../controller/itemController')
 
 let setRouter = (app)=>
 {
@@ -24,10 +23,6 @@ let setRouter = (app)=>
     //route to get single list by listId
     app.get(`${baseUrl}/:listId/view`,authMiddleware.isAuthorized,listController.getListById);
 
-    //route for adding item to a list
-    //params-->listId
-    //body-->itemTitle
-    app.put(`${baseUrl}/:listId/addItem`,authMiddleware.isAuthorized,itemController.addItemToList);
 }
 
 module.exports={
