@@ -98,6 +98,70 @@ let addItemToList = (req, res) => {
         })
 }//end of adding item to a list
 
+//editing item title by its itemId
+let editItemTitle = (req, res) => {
+    //validate provided itemId as a urlParams
+    let validateItemId = () => {
+        return new Promise((resolve, reject) => {
+            listModel.findOne({ 'items.itemId': req.params.itemId }, (err, result) => {
+                if (err) {
+                    logger.error('error while valildating item id', 'editItemTitle', 10);
+                    apiResponse = response.generate(true, 'Error while validating itemId', 400, null);
+                    reject(apiResponse)
+                }
+                else if (checkLib.isEmpty(result)) {
+                    console.log('result :: ', result)
+                    apiResponse = response.generate(true, 'no item found for given itemId', 404, null);
+                    reject(apiResponse)
+                }
+                else {
+                    //if list found than resolve req with listId
+                    resolve(req)
+                }
+            })
+        })
+    }//end of validate itemId  
+
+    //now edit item
+    let editItemAfterValidation = () => {
+        return new Promise((resolve, reject) => {
+
+            //To update the item in list model we will use set method of array
+            let options = {
+                $set: {
+                    "items.$.itemTitle": req.body.itemTitle,
+                    "items.$.itemModifierId": req.user.userId,
+                    "items.$.itemModifiedOn": timeLib.now(),
+                }
+            }
+
+            //listId associated with itemId
+            listModel.update({'listId':req.body.listId ,'items.itemId': req.params.itemId }, options, (err, res) => {
+                if (err) {
+                    logger.error('error while updating item Title', 'ListController:editItemAfterValidation', 10);
+                    apiResponse = response.generate(true, 'Error while updating item Title', 500, null);
+                    reject(apiResponse)
+                }
+                else {
+                    apiResponse = response.generate(false, 'item Title updated', 200, res);
+                    resolve(apiResponse)
+                }
+            })
+        })
+    }//end of editItemAfterValidation
+
+    //promises
+    validateItemId(req, res)
+        .then(editItemAfterValidation)
+        .then((resolve) => {
+            res.send(resolve)
+        })
+        .catch((error) => {
+            res.send(error)
+        })//end of promises
+}//end of item title
+
 module.exports = {
-    addItemToList
+    addItemToList,
+    editItemTitle
 }
