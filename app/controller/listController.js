@@ -67,7 +67,7 @@ let createList = (req, res) => {
 }//end of creating new list
 
 //controller to edit list
-let editList = (req, res) => {
+let editListTitle = (req, res) => {
 
     //checking if list with provided list id is present or not
     let findListDetails = () => {
@@ -99,12 +99,12 @@ let editList = (req, res) => {
 
             listModel.update({ 'listId': req.params.listId }, options, (err, res) => {
                 if (err) {
-                    logger.error('error while updating list', 'ListController:editListAfterValidation', 10);
-                    apiResponse = response.generate(true, 'Error while updating list', 500, null);
+                    logger.error('error while updating list Title', 'ListController:editListAfterValidation', 10);
+                    apiResponse = response.generate(true, 'Error while updating list Title', 500, null);
                     reject(apiResponse)
                 }
                 else {
-                    apiResponse = response.generate(false, 'List updated', 200, res);
+                    apiResponse = response.generate(false, 'List Title updated', 200, res);
                     resolve(apiResponse)
                 }
             })
@@ -145,8 +145,10 @@ let getAllListOfUser = (req, res) => {
         })
 }
 
+
+
 module.exports = {
     createList,
-    editList,
+    editListTitle,
     getAllListOfUser
 }
