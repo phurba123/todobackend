@@ -264,24 +264,44 @@ let signInUser = (req, res) => {
         .then(saveToken)
         .then((resolve) => {
             apiResponse = response.generate(false, 'login successfull', 200, resolve);
-            res.status(200);
             res.send(apiResponse);
         })
         .catch((error) => {
-            res.status(error.status);
             res.send(error);
         })
 
 }//end of login
 
 //function to resolve forgot password
-let forgotPassword = (req,res)=>
-{
+let forgotPassword = (req, res) => {
     //logic of function
 }//end of forgot password function
+
+//function to get all users
+let getAllUsers = (req, res) => {
+    UserModel.find()
+        .select('-password -__v -_id')
+        .lean()
+        .exec((err, result) => {
+            if (err) {
+                console.log(err)
+                logger.error('failed to find all user', 'User Controller: getAllUser', 10)
+                apiResponse = response.generate(true, 'Failed To Find User Details', 500, null)
+                res.send(apiResponse)
+            } else if (checkLib.isEmpty(result)) {
+                logger.info('No User Found', 'User Controller: getAllUser')
+                apiResponse = response.generate(true, 'No User Found', 404, null)
+                res.send(apiResponse)
+            } else {
+                apiResponse = response.generate(false, 'All User Details Found', 200, result)
+                res.send(apiResponse)
+            }
+        })
+}
 
 module.exports = {
     signUpUser,
     signInUser,
-    forgotPassword
+    forgotPassword,
+    getAllUsers
 }

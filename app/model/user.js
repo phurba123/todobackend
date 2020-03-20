@@ -39,6 +39,10 @@ let userSchema = new schema(
                 friendId: {
                     type: String,
                     default: ''
+                },
+                friendName:{
+                    type:String,
+                    default:''
                 }
 
             }]

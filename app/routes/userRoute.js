@@ -1,5 +1,6 @@
 const appConfig = require('../../appConfig');
-const userController = require('../controller/userController')
+const userController = require('../controller/userController');
+const authMiddleware = require('../middleware/authMiddleware')
 
 let setRouter = (app) => {
     let baseUrl = appConfig.apiVersion + '/user';
@@ -10,7 +11,10 @@ let setRouter = (app) => {
     app.post(`${baseUrl}/signin`, userController.signInUser);
 
     //forgot password
-    app.post(`${baseUrl}/forgotpassword`,userController.forgotPassword)
+    app.post(`${baseUrl}/forgotpassword`,userController.forgotPassword);
+
+    //get all users
+    app.get(`${baseUrl}/view/all`,authMiddleware.isAuthorized,userController.getAllUsers);
 
 }
 
