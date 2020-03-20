@@ -299,9 +299,66 @@ let getAllUsers = (req, res) => {
         })
 }
 
+//controller for send friend request
+let sendFriendRequest = (req, res) => {
+
+    let validateUserInput = () => {
+        return new Promise((resolve, reject) => {
+            if (req.body.senderId && req.body.receiverId) {
+                resolve(req)
+            } else {
+                logger.error('Field Missing During Sending request', 'userController: sendFriendRequest', 5)
+                apiResponse = response.generate(true, 'One or More Parameter(s) is missing', 400, null)
+                reject(apiResponse)
+            }
+        })
+    }// end validate user input
+
+    let updateReciever = () => {
+        let subOption = {
+            friendId: req.body.senderId
+        }
+
+        let option = {
+            $push: {
+                friendRequestRecieved: {
+                    $each: [subOption]
+                }
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            UserModel.updateOne({ 'userId': req.body.receiverId }, option).exec((err, result) => {
+                if (err) {
+                    logger.error(err.message, 'userController:updateReciever', 10)
+                    apiResponse = response.generate(true, 'Failed To Update Reciever', 500, null)
+                    reject(apiResponse)
+                } else if (checkLib.isEmpty(result)) {
+                    logger.info('Reciever not Found', 'userController: updateReciever')
+                    apiResponse = response.generate(true, 'Reciever not Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    apiResponse = response.generate(false, 'friend request sent', 200, result)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+        })
+    } //end updateReciever
+
+    validateUserInput(req, res)
+        .then(updateReciever)
+        .then((resolve) => {
+            res.send(resolve)
+        })
+        .catch((err) => {
+            res.send(err)
+        })
+}//end of friend request
+
 module.exports = {
     signUpUser,
     signInUser,
     forgotPassword,
-    getAllUsers
+    getAllUsers,
+    sendFriendRequest
 }
