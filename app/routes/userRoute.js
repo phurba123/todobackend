@@ -16,9 +16,16 @@ let setRouter = (app) => {
     //get all users
     app.get(`${baseUrl}/view/all`,authMiddleware.isAuthorized,userController.getAllUsers);
 
+    //getting userdetails of user by userId
+    app.get(`${baseUrl}/:userId/view`,authMiddleware.isAuthorized,userController.getUserDetailById)
+
     //send friend request
     //body--senderId,receiverId
     app.put(`${baseUrl}/request/friend`,authMiddleware.isAuthorized,userController.sendFriendRequest)
+
+    //accept friend-request
+    //body--senderId,receiverId(me),senderName,receiverName
+    app.post(`${baseUrl}/accept/friend/request`, authMiddleware.isAuthorized,userController.acceptFriendRequest);
 
 }
 

@@ -299,6 +299,71 @@ let getAllUsers = (req, res) => {
         })
 }
 
+//getting userdetail by userId
+let getUserDetailById = (req,res)=>
+{
+    //validate input for userId
+    let validateUserInput =()=>
+    {
+        return new Promise((resolve,reject)=>
+        {
+            if(req.params.userId)
+            {
+                resolve(req)
+            }
+            else
+            {
+                apiResponse=response.generate(true,'no userId provided',400,null)
+                reject(apiResponse)
+            }
+        })
+    }//end of validate input
+
+    //getting user detail
+    let getDetail = ()=>
+    {
+        return new Promise((resolve,reject)=>
+        {
+            UserModel.findOne({'userId':req.params.userId})
+            .select('-_id -__v')
+            .lean()
+            .exec((err,result)=>
+            {
+                if(err)
+                {
+                    apiResponse = response.generate(true,'error while getting user detail',400,null)
+                    logger.error('Error while getting user details','usercontroller:getDetail',10);
+                    reject(apiResponse)
+                }
+                else if(checkLib.isEmpty(result))
+                {
+                    logger.error('no user present for given userId','usercontroller:getDetail',5);
+                    apiResponse = response.generate(true,'No user details found',404,null)
+                    reject(apiResponse);
+                }
+                else
+                {
+                    //user if found
+                    logger.info('user details found','usercontroller:getDetail',5);
+                    apiResponse = response.generate(false,'user details found',200,result);
+                    resolve(apiResponse)
+                }
+            })
+        })
+    }//end of getDetail promise
+
+    validateUserInput(req,res)
+    .then(getDetail)
+    .then((resolve)=>
+    {
+        res.send(resolve)
+    })
+    .catch((err)=>
+    {
+        res.send(err)
+    })
+}
+
 //controller for send friend request
 let sendFriendRequest = (req, res) => {
 
@@ -355,10 +420,109 @@ let sendFriendRequest = (req, res) => {
         })
 }//end of friend request
 
+//accepting friend request
+let acceptFriendRequest = (req, res) => {
+
+    let validateUserInput = () => {
+        return new Promise((resolve, reject) => {
+            if (req.body.senderId && req.body.receiverId &&req.body.senderName &&req.body.receiverName) {
+                resolve(req)
+            } else {
+                logger.error('Field Missing During Accepting request', 'friendController: acceptFriendRequest', 5)
+                let apiResponse = response.generate(true, 'One or More Parameter(s) is missing', 400, null)
+                reject(apiResponse)
+            }
+        })
+    }// end validate user input
+
+    //updating sender friend list on accepting friend request
+    let updateSenderFriendList = () => {
+
+        let subOption = {
+            friendId: req.body.receiverId,
+            friendName: req.body.receiverName,
+        }
+
+        let option = {
+            $push: {
+                friends: {
+                    $each: [subOption]
+                }
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            UserModel.updateOne({ 'userId': req.body.senderId }, option).exec((err, result) => {
+                if (err) {
+                    //console.log("Error in verifying" + err)
+                    logger.error(err.message, 'user Controller:updateSenderFriendList', 10)
+                    apiResponse = response.generate(true, 'Failed To Update Sender Friend List', 500, null)
+                    reject(apiResponse)
+                } else if (checkLib.isEmpty(result)) {
+                    logger.info('Sender not Found', 'user Controller: updateSenderFriendList')
+                    apiResponse = response.generate(true, 'Sender not Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    apiResponse = response.generate(false, 'Updated Sender Friend List', 200, null)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+        })
+    } //end updateSenderFriendList
+
+    //updating receiver friend list on accepting friend request
+    let updateRecieverFriendList = () => {
+
+        let subOption = {
+            friendId: req.body.senderId,
+            friendName: req.body.senderName,
+        }
+
+        let option = {
+            $push: {
+                friends: {
+                    $each: [subOption]
+                }
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            UserModel.updateOne({ 'userId': req.body.receiverId }, option).exec((err, result) => {
+                if (err) {
+                    //console.log("Error in verifying" + err)
+                    logger.error(err.message, 'user Controller:updateRecieverFriendList', 10)
+                    apiResponse = response.generate(true, 'Failed To Update Reciver Friend List', 500, null)
+                    reject(apiResponse)
+                } else if (checkLib.isEmpty(result)) {
+                    logger.info('Reciver not Found', 'Friend Controller: updateRecieverFriendList')
+                    apiResponse = response.generate(true, 'Reciver not Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    apiResponse = response.generate(false, 'Updated Reciver Friend List', 200, null)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+        })
+    } //end updateRecieverFriendList
+
+    validateUserInput(req, res)
+        .then(updateSenderFriendList)
+        .then(updateRecieverFriendList)
+        .then((resolve) => {
+            apiResponse = response.generate(false, 'Friend request Accepted', 200, null)
+            res.send(apiResponse)
+        })
+        .catch((err) => {
+            res.send(err)
+        })
+}//end of accepting friend request
+
 module.exports = {
     signUpUser,
     signInUser,
     forgotPassword,
     getAllUsers,
-    sendFriendRequest
+    getUserDetailById,
+    sendFriendRequest,
+    acceptFriendRequest
 }
