@@ -72,47 +72,7 @@ let ListSchema = new Schema({
             itemDone: {
                 type: Boolean,
                 default: false
-            },
-            //subitems of item
-            subItems:
-            {
-                type: [{
-                    subItemId: {
-                        type: String,
-                        default: '',
-                    },
-
-                    subItemTitle: {
-                        type: String,
-                        default: ''
-                    },
-
-                    subItemCreatorId: {
-                        type: String,
-                        default: ''
-                    },
-
-                    subItemCreatedOn: {
-                        type: Date,
-                        default: ""
-                    },
-                    subItemModifiedOn: {
-                        type: Date,
-                        default: ""
-                    },
-
-                    subItemModifierId: {
-                        type: String,
-                        default: ''
-                    },
-
-                    subItemDone: {
-                        type: Boolean,
-                        default: false
-                    }
-                }]//end of arraytype of subitem
-            }//end of subitem
-
+            }
         }]//end of array type of items
     }//end of items
 

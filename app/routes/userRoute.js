@@ -20,12 +20,14 @@ let setRouter = (app) => {
     app.get(`${baseUrl}/:userId/view`,authMiddleware.isAuthorized,userController.getUserDetailById)
 
     //send friend request
-    //body--senderId,receiverId
+    //body--senderId,receiverId,senderName,receiverName,
     app.put(`${baseUrl}/request/friend`,authMiddleware.isAuthorized,userController.sendFriendRequest)
 
     //accept friend-request
     //body--senderId,receiverId(me),senderName,receiverName
     app.post(`${baseUrl}/accept/friend/request`, authMiddleware.isAuthorized,userController.acceptFriendRequest);
+
+    app.get(`${baseUrl}/:userId/view/friendrequests`, authMiddleware.isAuthorized, userController.getAllRequestReceived);
 
 }
 

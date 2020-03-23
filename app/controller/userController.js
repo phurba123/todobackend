@@ -300,68 +300,55 @@ let getAllUsers = (req, res) => {
 }
 
 //getting userdetail by userId
-let getUserDetailById = (req,res)=>
-{
+let getUserDetailById = (req, res) => {
     //validate input for userId
-    let validateUserInput =()=>
-    {
-        return new Promise((resolve,reject)=>
-        {
-            if(req.params.userId)
-            {
+    let validateUserInput = () => {
+        return new Promise((resolve, reject) => {
+            if (req.params.userId) {
                 resolve(req)
             }
-            else
-            {
-                apiResponse=response.generate(true,'no userId provided',400,null)
+            else {
+                apiResponse = response.generate(true, 'no userId provided', 400, null)
                 reject(apiResponse)
             }
         })
     }//end of validate input
 
     //getting user detail
-    let getDetail = ()=>
-    {
-        return new Promise((resolve,reject)=>
-        {
-            UserModel.findOne({'userId':req.params.userId})
-            .select('-_id -__v')
-            .lean()
-            .exec((err,result)=>
-            {
-                if(err)
-                {
-                    apiResponse = response.generate(true,'error while getting user detail',400,null)
-                    logger.error('Error while getting user details','usercontroller:getDetail',10);
-                    reject(apiResponse)
-                }
-                else if(checkLib.isEmpty(result))
-                {
-                    logger.error('no user present for given userId','usercontroller:getDetail',5);
-                    apiResponse = response.generate(true,'No user details found',404,null)
-                    reject(apiResponse);
-                }
-                else
-                {
-                    //user if found
-                    logger.info('user details found','usercontroller:getDetail',5);
-                    apiResponse = response.generate(false,'user details found',200,result);
-                    resolve(apiResponse)
-                }
-            })
+    let getDetail = () => {
+        return new Promise((resolve, reject) => {
+            UserModel.findOne({ 'userId': req.params.userId })
+                .select('-_id -__v')
+                .lean()
+                .exec((err, result) => {
+                    if (err) {
+                        apiResponse = response.generate(true, 'error while getting user detail', 400, null)
+                        logger.error('Error while getting user details', 'usercontroller:getDetail', 10);
+                        reject(apiResponse)
+                    }
+                    else if (checkLib.isEmpty(result)) {
+                        logger.error('no user present for given userId', 'usercontroller:getDetail', 5);
+                        apiResponse = response.generate(true, 'No user details found', 404, null)
+                        reject(apiResponse);
+                    }
+                    else {
+                        //user if found
+                        logger.info('user details found', 'usercontroller:getDetail', 5);
+                        apiResponse = response.generate(false, 'user details found', 200, result);
+                        resolve(apiResponse)
+                    }
+                })
         })
     }//end of getDetail promise
 
-    validateUserInput(req,res)
-    .then(getDetail)
-    .then((resolve)=>
-    {
-        res.send(resolve)
-    })
-    .catch((err)=>
-    {
-        res.send(err)
-    })
+    validateUserInput(req, res)
+        .then(getDetail)
+        .then((resolve) => {
+            res.send(resolve)
+        })
+        .catch((err) => {
+            res.send(err)
+        })
 }
 
 //controller for send friend request
@@ -381,12 +368,13 @@ let sendFriendRequest = (req, res) => {
 
     let updateReciever = () => {
         let subOption = {
-            friendId: req.body.senderId
+            friendId: req.body.senderId,
+            friendName: req.body.senderName
         }
 
         let option = {
             $push: {
-                friendRequestRecieved: {
+                friendRequestReceived: {
                     $each: [subOption]
                 }
             }
@@ -403,17 +391,52 @@ let sendFriendRequest = (req, res) => {
                     apiResponse = response.generate(true, 'Reciever not Found', 404, null)
                     reject(apiResponse)
                 } else {
-                    apiResponse = response.generate(false, 'friend request sent', 200, result)
+                    apiResponse = response.generate(false, 'updated receiver', 200, result)
                     resolve(apiResponse)
                 }
             });// end user model update
         })
     } //end updateReciever
 
+    //update user friendRequestSent
+    let updateSender = () => {
+
+        let subOption = {
+            friendId: req.body.receiverId,
+            friendName: req.body.receiverName
+        }
+
+        let option = {
+            $push: {
+                friendRequestSent: { $each: [subOption] }
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            UserModel.updateOne({ 'userId': req.body.senderId }, option).exec((err, result) => {
+                if (err) {
+                    //console.log("Error in verifying" + err)
+                    logger.error(err.message, 'user Controller:updateSender', 10)
+                    apiResponse = response.generate(true, 'Failed To Update Sender', 500, null)
+                    reject(apiResponse)
+                } else if (checkLib.isEmpty(result)) {
+                    logger.info('Sender not Found', 'user Controller: updateSender')
+                    apiResponse = response.generate(true, 'Sender not Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    apiResponse = response.generate(false, 'Updated Sender with sent requests', 200, null)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+        })
+    } //end updateSender
+
     validateUserInput(req, res)
         .then(updateReciever)
+        .then(updateSender)
         .then((resolve) => {
-            res.send(resolve)
+            apiResponse = response.generate(false, 'friend request sent', 200, null)
+            res.send(apiResponse)
         })
         .catch((err) => {
             res.send(err)
@@ -425,11 +448,11 @@ let acceptFriendRequest = (req, res) => {
 
     let validateUserInput = () => {
         return new Promise((resolve, reject) => {
-            if (req.body.senderId && req.body.receiverId &&req.body.senderName &&req.body.receiverName) {
+            if (req.body.senderId && req.body.receiverId && req.body.senderName && req.body.receiverName) {
                 resolve(req)
             } else {
-                logger.error('Field Missing During Accepting request', 'friendController: acceptFriendRequest', 5)
-                let apiResponse = response.generate(true, 'One or More Parameter(s) is missing', 400, null)
+                logger.error('Field Missing During Accepting request', 'usercontroller: acceptFriendRequest', 5)
+                apiResponse = response.generate(true, 'One or More Parameter(s) is missing', 400, null)
                 reject(apiResponse)
             }
         })
@@ -505,9 +528,69 @@ let acceptFriendRequest = (req, res) => {
         })
     } //end updateRecieverFriendList
 
+    let updateSenderSentRequest = () => {
+
+        let options = {
+            $pull: {
+                friendRequestSent: {
+                    friendId: req.body.receiverId
+                }
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            UserModel.updateOne({ 'userId': req.body.senderId }, options).exec((err, result) => {
+                if (err) {
+                    //console.log("Error in verifying" + err)
+                    logger.error(err.message, 'user Controller:updateSenderSentRequest', 10)
+                    apiResponse = response.generate(true, 'Failed To Update Sender Sent Request', 500, null)
+                    reject(apiResponse)
+                } else if (checkLib.isEmpty(result)) {
+                    logger.info('Sender not Found', 'user Controller: updateSenderSentRequest')
+                    apiResponse = response.generate(true, 'Sender not Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    apiResponse = response.generate(false, 'Updated Sender Sent Request', 200, null)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+        })
+    } //end updateSenderSentRequest
+
+    let updateReceiverRequestRecieved = () => {
+
+        let options = {
+            $pull: {
+                friendRequestReceived: {
+                    friendId: req.body.senderId
+                }
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            UserModel.updateOne({ 'userId': req.body.receiverId }, options).exec((err, result) => {
+                if (err) {
+                    //console.log("Error in verifying" + err)
+                    logger.error(err.message, 'user Controller:updateRecieverRequestRecieved', 10)
+                    apiResponse = response.generate(true, 'Failed To Update Reciever Requests Recieved', 500, null)
+                    reject(apiResponse)
+                } else if (checkLib.isEmpty(result)) {
+                    logger.info('Reciver not Found', 'user Controller: updateRecieverRequestRecieved')
+                    apiResponse = response.generate(true, 'Reciver not Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    apiResponse = response.generate(false, 'Updated Recievers Requests Recieved', 200, null)
+                    resolve(apiResponse)
+                }
+            });// end user model update
+        })
+    } //end updateRecieverRequestRecieved
+
     validateUserInput(req, res)
         .then(updateSenderFriendList)
         .then(updateRecieverFriendList)
+        .then(updateSenderSentRequest)
+        .then(updateReceiverRequestRecieved)
         .then((resolve) => {
             apiResponse = response.generate(false, 'Friend request Accepted', 200, null)
             res.send(apiResponse)
@@ -517,6 +600,29 @@ let acceptFriendRequest = (req, res) => {
         })
 }//end of accepting friend request
 
+let getAllRequestReceived = (req, res) => {
+
+    UserModel.find({ userId: req.params.userId })
+        .select('friendRequestReceived')
+        .lean()
+        .exec((err, result) => {
+            if (err) {
+                console.log(err)
+                logger.error(err.message, 'user Controller: getAllRequestReceived', 10)
+                apiResponse = response.generate(true, 'Failed To Find Received Requests', 500, null)
+                res.send(apiResponse)
+            } else if (checkLib.isEmpty(result)) {
+                logger.info('no user found for given userId', 'user Controller: getAllRequestRecieved')
+                apiResponse = response.generate(true, 'userId invalid or not found', 404, null)
+                res.send(apiResponse)
+            } else {
+                console.log('result : ',result[0])
+                apiResponse = response.generate(false, 'All Recieved Requsts Found', 200, result[0])
+                res.send(apiResponse)
+            }
+        })
+}
+
 module.exports = {
     signUpUser,
     signInUser,
@@ -524,5 +630,6 @@ module.exports = {
     getAllUsers,
     getUserDetailById,
     sendFriendRequest,
-    acceptFriendRequest
+    acceptFriendRequest,
+    getAllRequestReceived
 }

@@ -49,13 +49,31 @@ let userSchema = new schema(
         },
 
         //storing the ids of friends sending friend request
-        friendRequestRecieved: {
+        friendRequestReceived: {
             type: [{
                 friendId: {
                     type: String,
                     default: ''
+                },
+                friendName:{
+                    type:String,
+                    default:''
                 }
 
+            }]
+        },
+
+        //storing the ids of friends to whom friend request has been sent
+        friendRequestSent:{
+            type:[{
+                friendId:{
+                    type:String,
+                    default:""
+                },
+                friendName:{
+                    type:String,
+                    default:""
+                }
             }]
         },
 
