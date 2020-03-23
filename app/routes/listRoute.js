@@ -7,6 +7,7 @@ let setRouter = (app)=>
     const baseUrl = `${appconfig.apiVersion}/list`;
 
     //route to create list
+    //body--listCreatorId,listTitle,userId(userId of user to whom this list belongs to)
     app.post(`${baseUrl}/create`,authMiddleware.isAuthorized, listController.createList);
 
     //edit route for list
@@ -15,7 +16,7 @@ let setRouter = (app)=>
 
     //route for getting all the list of a user
     //only params is auth
-    app.get(`${baseUrl}/view/all`,authMiddleware.isAuthorized,listController.getAllListOfUser);
+    app.get(`${baseUrl}/:userId/view/all`,authMiddleware.isAuthorized,listController.getAllListOfUser);
 
     //route for deleting list
     app.post(`${baseUrl}/:listId/delete`,authMiddleware.isAuthorized, listController.deleteList);

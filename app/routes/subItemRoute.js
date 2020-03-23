@@ -15,10 +15,13 @@ let setRouter = (app) => {
     //body-->itemTitle
     app.put(`${baseUrl}/:itemId/edit/subItemTitle`, authMiddleware.isAuthorized, subItemController.editSubItemTitle);
 
-    //delete item by itemId
-    //param--itemId
-    //body--listId
-    app.post(`${baseUrl}/:itemId/delete/subItem`, authMiddleware.isAuthorized, subItemController.deleteSubItemById)
+    //delete subitem
+    //param--subitemId
+    //body--auth,itemId
+    app.post(`${baseUrl}/:subItemId/delete`, authMiddleware.isAuthorized, subItemController.deleteSubItemById);
+
+    //params--itemId
+    app.get(`${baseUrl}/:itemId/view`,authMiddleware.isAuthorized,subItemController.getSubItemsofItem)
 }
 
 module.exports = {

@@ -7,7 +7,7 @@ let subItemSchema = new Schema({
         default:''
     },
 
-    subItem:{
+    subItems:{
         type:[{
             subItemId:{
                 type:String,
@@ -40,3 +40,5 @@ let subItemSchema = new Schema({
         }]
     }
 })
+
+mongoose.model('subItem',subItemSchema);

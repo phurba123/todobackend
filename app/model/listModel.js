@@ -3,6 +3,10 @@ const mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 let ListSchema = new Schema({
+    userId:{
+        type:String,
+        default:''
+    },
     listId: {
         type: String,
         default: '',
