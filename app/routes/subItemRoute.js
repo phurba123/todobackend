@@ -11,9 +11,9 @@ let setRouter = (app) => {
     app.put(`${baseUrl}/:itemId/addItem`, authMiddleware.isAuthorized, subItemController.addSubItem);
 
     //edit item title by its id
-    //param--itemId
-    //body-->itemTitle
-    app.put(`${baseUrl}/:itemId/edit/subItemTitle`, authMiddleware.isAuthorized, subItemController.editSubItemTitle);
+    //param--subItemId
+    //body-->subItemTitle,modifierId,itemId,authToken
+    app.put(`${baseUrl}/:subItemId/edit`, authMiddleware.isAuthorized, subItemController.editSubItemTitle);
 
     //delete subitem
     //param--subitemId

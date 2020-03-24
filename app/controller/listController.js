@@ -28,7 +28,7 @@ let createList = (req, res) => {
     let saveList = () => {
         return new Promise((resolve, reject) => {
             let newList = new listModel({
-                userId:req.body.userId,
+                userId: req.body.userId,
                 listId: shortId.generate(),
                 listTitle: req.body.listTitle,
                 listCreatorId: req.body.listCreatorId,

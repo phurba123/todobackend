@@ -18,7 +18,11 @@ let setRouter = (app) => {
     //delete item by itemId
     //param--itemId
     //body--listId
-    app.post(`${baseUrl}/:itemId/deleteItem`,authMiddleware.isAuthorized,itemController.deleteItemById)
+    app.post(`${baseUrl}/:itemId/deleteItem`,authMiddleware.isAuthorized,itemController.deleteItemById);
+
+    //params--itemId
+    //body--isDone(boolean)
+    app.put(`${baseUrl}/:itemId/markitem`,authMiddleware.isAuthorized,itemController.markItemAsDoneAndUndone)
 }
 
 module.exports={

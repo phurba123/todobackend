@@ -140,9 +140,60 @@ let addSubItem = (req, res) => {
         })
 }//end of adding subitem controller function
 
+//edit subitem
 let editSubItemTitle = (req, res) => {
-    //
-}
+
+    let validateinputs = () => {
+        return new Promise((resolve, reject) => {
+            if (req.body.itemId && req.body.modifierId && req.body.subItemTitle && req.params.subItemId) {
+                logger.info('all parameter are present')
+                resolve(req)
+            }
+            else {
+                logger.error('one or more parameters are missing', 'subitemcontroller:editsubitemtitle', 10);
+                apiResponse = response.generate(true, 'one or more parameters are missing', 400, null);
+                reject(apiResponse)
+            }
+        })
+    }//end of validateinputs
+
+    let editSubItem = () => {
+        //logger.info('inside edit sub item')
+        return new Promise((resolve, reject) => {
+            //To update the subitem in subitem model we will use set method of array
+            let options = {
+                $set: {
+                    "subItems.$.subItemTitle": req.body.subItemTitle,
+                    "subItems.$.subItemModifierId": req.body.modifierId,
+                    "subItems.$.subItemModifiedOn": timeLib.now(),
+                }
+            }
+            //console.log('options : ',options)
+
+            subItemModel.updateOne({"subItems.subItemId": req.params.subItemId }, options)
+            .exec((err, result) => {
+                if (err) {
+                    logger.error(err.message, 'subItem Controller:editSubItem', 10)
+                    apiResponse = response.generate(true, 'Failed To edit SubItem  : editSubItem', 500, null)
+                    reject(apiResponse)
+                } else {
+                    logger.info('subitem updated');
+                    apiResponse = response.generate(false, 'subItem updated', 200, result)
+                    resolve(apiResponse)
+                }
+            });// end subItem model update
+        })
+    }//end of editSubItem promise
+
+    validateinputs(req, res)
+        .then(editSubItem)
+        .then((resolve) => {
+            res.send(resolve)
+        })
+        .catch((err) => {
+            res.send(err)
+        })
+}//end of editing subitem
 
 let deleteSubItemById = (req, res) => {
     //validating user input
@@ -169,7 +220,7 @@ let deleteSubItemById = (req, res) => {
             }
         }
         return new Promise((resolve, reject) => {
-            subItemModel.update({ 'itemId': req.body.itemId },options)
+            subItemModel.update({ 'itemId': req.body.itemId }, options)
                 .exec((err, result) => {
                     if (err) {
                         logger.error('error while deleting subitem', 'deletesubitem', 10);
