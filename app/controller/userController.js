@@ -6,7 +6,8 @@ const mongoose = require('mongoose');
 const shortid = require('shortid');
 const passwordLib = require('../libs/passwordLib');
 const timeLib = require('../libs/timeLib');
-const tokenLib = require('../libs/tokenLib')
+const tokenLib = require('../libs/tokenLib');
+const emailLib = require('../libs/emailLib')
 
 
 let UserModel = mongoose.model('userModel');
@@ -274,6 +275,109 @@ let signInUser = (req, res) => {
 
 //function to resolve forgot password
 let forgotPassword = (req, res) => {
+
+    //validating email
+    let validateUserInput = () => {
+        return new Promise((resolve, reject) => {
+            if (req.params.email) {
+                if (!validateInput.Email(req.params.email)) {
+                    apiResponse = response.generate(true, 'email does not met the requirement', 400, null);
+                    logger.error('not valid email', 'userController:recoverForgotPassword:validateUserInput', 10)
+                    reject(apiResponse)
+                }
+                else {
+                    logger.info('user validated', 'userController:validateUserInput', 10);
+                    resolve(req);
+                }
+            }
+            else {
+                logger.error('email field missing', 'userController:recoverForgotPassword', 10);
+                apiResponse = response.generate(true, 'Email is missing', 400, null);
+                reject(apiResponse);
+            }
+        });
+    }//end of validate user input
+
+    let findUser = () => {
+        return new Promise((resolve, reject) => {
+
+            UserModel.findOne({ 'email': req.params.email })
+                .select('-__v -_id')
+                .lean()
+                .exec((err, result) => {
+                    if (err) {
+                        console.log(err)
+                        logger.error('failed to find user detail', 'User Controller: getSingleUser', 10)
+                        apiResponse = response.generate(true, 'Failed To Find User Details', 500, null)
+                        reject(apiResponse)
+                    } else if (checkLib.isEmpty(result)) {
+                        logger.info('No User Found with given email', 'User Controller:recoverPassword')
+                        apiResponse = response.generate(true, 'No User Found with given email', 404, null)
+                        reject(apiResponse)
+                    } else {
+                        resolve(result)
+
+                    }
+                })
+        })
+    }
+
+    let generateAndSaveNewPassword = (userDetail) => {
+
+        //generating new password
+        let newPassword = passwordLib.generateNewPassword();
+        console.log('new password', newPassword);
+
+        //updating userDetail with new hashed password
+        userDetail.password = passwordLib.hashPassword(newPassword)
+
+        return new Promise((resolve, reject) => {
+            UserModel.updateOne({ 'email': req.params.email }, userDetail).exec((err, result) => {
+                if (err) {
+                    console.log(err)
+                    logger.error('failed to reset password', 'User Controller:generateAndSavePassword', 10)
+                    apiResponse = response.generate(true, 'Failed To reset Password', 500, null)
+                    reject(apiResponse)
+                } else if (checkLib.isEmpty(result)) {
+                    logger.info('No email Found', 'User Controller: generateAndSaveNewPassword')
+                    apiResponse = response.generate(true, 'No User with email Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    //Creating object for sending email 
+                    let sendEmailObj = {
+                        email: req.params.email,
+                        subject: 'Reset Password for ToDoList ',
+                        html: `<h5> Hi ${userDetail.firstName}</h5>
+                                <pre>
+-----It seems you have forgot your password of ToDoList------
+No worries , You have been provided a new password in replace to your
+old password.
+    
+Your new password is -->${newPassword}<--
+    
+***** Keep visiting ToDoList****                                
+</pre>`
+                    }
+
+                    setTimeout(() => {
+                        emailLib.sendEmailToUser(sendEmailObj);
+                    }, 1500);
+                    apiResponse = response.generate(false, 'reset password successfull', 200, result)
+                    resolve(apiResponse)
+                }
+            });
+        })
+    }//end of generating and saving new password
+
+    validateUserInput(req, res)
+        .then(findUser)
+        .then(generateAndSaveNewPassword)
+        .then((resolve) => {
+            res.send(resolve)
+        })
+        .catch((error) => {
+            res.send(error)
+        })
     //logic of function
 }//end of forgot password function
 
@@ -616,11 +720,28 @@ let getAllRequestReceived = (req, res) => {
                 apiResponse = response.generate(true, 'userId invalid or not found', 404, null)
                 res.send(apiResponse)
             } else {
-                console.log('result : ',result[0])
+                console.log('result : ', result[0])
                 apiResponse = response.generate(false, 'All Recieved Requsts Found', 200, result[0])
                 res.send(apiResponse)
             }
         })
+}
+
+let signout = (req, res) => {
+    authModel.findOneAndRemove({ userId: req.user.userId }, (err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error(err.message, 'user Controller: logout', 10)
+            let apiResponse = response.generate(true, `error occurred: ${err.message}`, 500, null)
+            res.send(apiResponse)
+        } else if (checkLib.isEmpty(result)) {
+            let apiResponse = response.generate(true, 'Already Logged Out or Invalid UserId', 404, null)
+            res.send(apiResponse)
+        } else {
+            let apiResponse = response.generate(false, 'Logged Out Successfully', 200, null)
+            res.send(apiResponse)
+        }
+    })
 }
 
 module.exports = {
@@ -631,5 +752,6 @@ module.exports = {
     getUserDetailById,
     sendFriendRequest,
     acceptFriendRequest,
-    getAllRequestReceived
+    getAllRequestReceived,
+    signout
 }

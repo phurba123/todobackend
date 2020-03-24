@@ -10,8 +10,12 @@ let setRouter = (app) => {
     //login
     app.post(`${baseUrl}/signin`, userController.signInUser);
 
+    //route for signout
+    app.post(`${baseUrl}/signout`,authMiddleware.isAuthorized, userController.signout);
+
     //forgot password
-    app.post(`${baseUrl}/forgotpassword`,userController.forgotPassword);
+    //params-email
+    app.post(`${baseUrl}/:email/forgotpassword`,userController.forgotPassword);
 
     //get all users
     app.get(`${baseUrl}/view/all`,authMiddleware.isAuthorized,userController.getAllUsers);
