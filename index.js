@@ -7,7 +7,8 @@ const logger = require('./app/libs/loggerLib');
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser');
 const appErrorHandler = require('./app/middleware/appErrorHandler');
-const requestIpLogger = require('./app/middleware/requestIpLogger')
+const requestIpLogger = require('./app/middleware/requestIpLogger');
+const socketLib = require('./app/libs/socketLib')
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -86,6 +87,9 @@ function onListening() {
     logger.info('server listening on port' + addr.port, 'serverOnListeningHandler', 10);
     mongoose.connect(appconfig.db.uri, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
 }
+
+//socket connection
+socketLib.setServer(server);
 
 /**
  * database connection settings
