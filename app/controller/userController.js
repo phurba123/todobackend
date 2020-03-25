@@ -460,7 +460,7 @@ let sendFriendRequest = (req, res) => {
 
     let validateUserInput = () => {
         return new Promise((resolve, reject) => {
-            if (req.body.senderId && req.body.receiverId) {
+            if (req.body.senderId && req.body.receiverId &&req.body.senderName&&req.body.receiverName) {
                 resolve(req)
             } else {
                 logger.error('Field Missing During Sending request', 'userController: sendFriendRequest', 5)

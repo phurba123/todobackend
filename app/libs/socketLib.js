@@ -36,7 +36,7 @@ let setServer = (server) => {
                 eventEmitter.emit('send-email', data);
 
             }, 2000)
-            socket.broadcast.emit(data.friendId, data.message);
+            socket.broadcast.emit(data.friendId, data.message);//
         })
 
     });

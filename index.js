@@ -8,7 +8,8 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser');
 const appErrorHandler = require('./app/middleware/appErrorHandler');
 const requestIpLogger = require('./app/middleware/requestIpLogger');
-const socketLib = require('./app/libs/socketLib')
+const socketLib = require('./app/libs/socketLib');
+const helmet = require('helmet')
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -16,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 app.use(appErrorHandler.globalErrorHandler);
 app.use(requestIpLogger.logIp)
-
+app.use(helmet());
 //Bootstrap models
 let modelsPath = ('./app/model');
 fs.readdirSync(modelsPath).forEach(function (file) {
